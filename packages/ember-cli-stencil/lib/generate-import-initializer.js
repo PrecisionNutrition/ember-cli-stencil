@@ -6,16 +6,14 @@ const theredoc = require('theredoc');
 function generateInitializer(moduleNames) {
   const modules = moduleNames.map(module => ({
     name: module,
-    polyfillFunction: camelCase(`apply-polyfills-${module}`),
     importFunction: camelCase(`define-${module}`)
   }));
 
   const moduleImports = modules
     .map(
-      ({ name, polyfillFunction, importFunction }) =>
+      ({ name, importFunction }) =>
         theredoc`
           import {
-            applyPolyfills as ${polyfillFunction},
             defineCustomElements as ${importFunction}
           } from '${name}/loader';
         `
@@ -27,13 +25,11 @@ function generateInitializer(moduleNames) {
     );
 
   const defineComponents = modules.reduce(
-    (acc, { polyfillFunction, importFunction }) =>
+    (acc, { importFunction }) =>
       acc +
       (acc === '' ? '' : '\n') +
       theredoc`
-        ${polyfillFunction}().then(function() {
-          ${importFunction}(window);
-        });
+        ${importFunction}(window);
       `,
     ''
   );
